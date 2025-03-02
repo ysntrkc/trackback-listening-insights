@@ -1,0 +1,127 @@
+:root {
+  --spotify-green: #1DB954;
+  --spotify-black: #191414;
+  --light-gray: #f0f0f0;
+  --medium-gray: #b3b3b3;
+  --dark-gray: #535353;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  background-color: var(--spotify-black);
+  color: white;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 30px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--spotify-green);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  background-color: #1ED760;
+}
+
+.btn-logout {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.btn-logout:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--dark-gray);
+}
+
+th {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--medium-gray);
+  font-weight: 600;
+}
+
+tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.time-range-selector {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.time-range-selector button {
+  background: none;
+  border: none;
+  color: var(--medium-gray);
+  padding: 10px 15px;
+  cursor: pointer;
+  margin: 0 5px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.time-range-selector button.active {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.loading-spinner i {
+  color: var(--spotify-green);
+  font-size: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: #ff5252;
+  background-color: rgba(255, 82, 82, 0.1);
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
