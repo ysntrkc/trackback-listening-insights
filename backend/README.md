@@ -13,15 +13,7 @@ This is a FastAPI application that allows users to view their Spotify statistics
 ## Setup
 
 1. Clone the repository
-2. Create a `.env` file with your Spotify API credentials:
-
-```
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-REDIRECT_URI=http://192.168.48.37:8000/callback
-SECRET_KEY=yoursecretkey123
-```
-
+2. Copy `.env.example` to `.env` and fill in the required values
 3. Install dependencies:
 
 ```bash
