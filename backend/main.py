@@ -5,7 +5,6 @@ import requests
 import base64
 import os
 from dotenv import load_dotenv
-import json
 from jose import jwt
 import time
 from urllib.parse import urlencode
@@ -19,7 +18,17 @@ app = FastAPI(title="Spotify Stats Tracker")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://192.168.48.37:5173",
+        "http://192.168.48.37:3000",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+        # Add wildcard for development
+        "http://192.168.48.37:*",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

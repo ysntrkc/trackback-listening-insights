@@ -3,8 +3,8 @@ import axios from 'axios';
 import Loading from './Loading';
 import './TopItems.css';
 
-// Backend URL constant
-const BACKEND_URL = 'http://localhost:8000';
+// Backend URL from environment variables
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const TopArtists = () => {
   const [artists, setArtists] = useState([]);

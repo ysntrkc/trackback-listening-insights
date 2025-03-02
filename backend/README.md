@@ -18,7 +18,7 @@ This is a FastAPI application that allows users to view their Spotify statistics
 ```
 SPOTIFY_CLIENT_ID=your_spotify_client_id
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-REDIRECT_URI=http://localhost:8000/callback
+REDIRECT_URI=http://192.168.48.37:8000/callback
 SECRET_KEY=yoursecretkey123
 ```
 

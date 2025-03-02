@@ -11,8 +11,8 @@ import Loading from './components/Loading';
 // Configure axios defaults
 axios.defaults.withCredentials = true;
 
-// Define the backend URL
-const BACKEND_URL = 'http://localhost:8000';
+// Define the backend URL from environment variables
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

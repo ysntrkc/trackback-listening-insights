@@ -5,8 +5,9 @@ const Login = () => {
   // Get the current hostname and port for the frontend
   const frontendUrl = window.location.origin;
   
-  // Use the direct backend URL for login to avoid proxy issues
-  const backendUrl = "http://localhost:8000/login";
+  // Get backend URL from environment variables
+  const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  const backendUrl = `${backendBaseUrl}/login`;
   
   return (
     <div className="login-container">
