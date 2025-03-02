@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navigation.css';
+import { useAuth } from '../context/AuthContext';
 
-const Navigation = ({ userProfile, onLogout }) => {
+const Navigation = () => {
   const location = useLocation();
+  const { userProfile, logout } = useAuth();
 
   return (
     <nav className="navbar">
@@ -39,7 +41,7 @@ const Navigation = ({ userProfile, onLogout }) => {
               <span className="username">{userProfile.display_name}</span>
             </>
           )}
-          <button onClick={onLogout} className="btn btn-logout">
+          <button onClick={logout} className="btn btn-logout">
             Logout
           </button>
         </div>

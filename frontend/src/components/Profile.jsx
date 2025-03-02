@@ -1,13 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import Loading from './Loading';
 import './Profile.css';
 
-const Profile = ({ userProfile }) => {
-  if (!userProfile) {
+const Profile = () => {
+  const { apiClient } = useAuth();
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get('/profile');
+        if (response.data.status === 'success') {
+          setProfileData(response.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [apiClient]);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
     return (
       <div className="profile-container">
-        <div className="error-message">
-          Profile data not available
-        </div>
+        <div className="error-message">{error}</div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="profile-container">
+        <div className="error-message">Profile data not available</div>
       </div>
     );
   }
@@ -16,36 +52,36 @@ const Profile = ({ userProfile }) => {
     <div className="profile-container">
       <div className="profile-card">
         <div className="profile-header">
-          {userProfile.profile_image && (
+          {profileData.profile_image && (
             <img 
-              src={userProfile.profile_image}
-              alt={userProfile.display_name}
+              src={profileData.profile_image}
+              alt={profileData.display_name}
               className="profile-image"
             />
           )}
-          <h1>{userProfile.display_name || 'Spotify User'}</h1>
+          <h1>{profileData.display_name || 'Spotify User'}</h1>
         </div>
         
         <div className="profile-details">
-          {userProfile.email && (
+          {profileData.email && (
             <div className="detail-item">
               <span className="detail-label">Email:</span>
-              <span className="detail-value">{userProfile.email}</span>
+              <span className="detail-value">{profileData.email}</span>
             </div>
           )}
           
-          {userProfile.followers !== undefined && (
+          {profileData.followers !== undefined && (
             <div className="detail-item">
               <span className="detail-label">Followers:</span>
-              <span className="detail-value">{userProfile.followers.toLocaleString()}</span>
+              <span className="detail-value">{profileData.followers.toLocaleString()}</span>
             </div>
           )}
           
-          {userProfile.spotify_url && (
+          {profileData.spotify_url && (
             <div className="detail-item">
               <span className="detail-label">Spotify Profile:</span>
               <a 
-                href={userProfile.spotify_url}
+                href={profileData.spotify_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="spotify-link"
