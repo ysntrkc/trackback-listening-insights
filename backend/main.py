@@ -15,20 +15,13 @@ load_dotenv()
 
 app = FastAPI(title="Spotify Stats Tracker")
 
+# Frontend URL
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://192.168.48.37:5173",
-        "http://192.168.48.37:3000",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-        # Add wildcard for development
-        "http://192.168.48.37:*",
-    ],
+    allow_origins=[FRONTEND_URL, f"{FRONTEND_URL}/*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -138,7 +131,7 @@ async def callback(code: str = None, error: str = None, response: Response = Non
     )
 
     # Set cookie with JWT token
-    response = RedirectResponse(url="/profile")
+    response = RedirectResponse(url=FRONTEND_URL)
     response.set_cookie(
         key="auth_token",
         value=jwt_token,
