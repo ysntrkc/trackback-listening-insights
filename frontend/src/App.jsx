@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Profile from './components/Profile';
@@ -10,30 +10,36 @@ import { useAuth } from './context/AuthContext';
 
 function App() {
   const { isLoggedIn, loading } = useAuth();
+  const [currentPage, setCurrentPage] = useState('top-tracks');
 
   if (loading) {
     return <Loading />;
   }
 
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'top-tracks':
+        return <TopTracks />;
+      case 'top-artists':
+        return <TopArtists />;
+      case 'profile':
+        return <Profile />;
+      default:
+        return <TopTracks />;
+    }
+  };
+
   return (
     <div className="app">
-      {isLoggedIn && <Navigation />}
+      {isLoggedIn && <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />}
       <div className="container">
-        <Routes>
-          <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login />} />
-          <Route
-            path="/"
-            element={isLoggedIn ? <TopTracks /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/top-artists"
-            element={isLoggedIn ? <TopArtists /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/profile"
-            element={isLoggedIn ? <Profile /> : <Navigate to="/login" />}
-          />
-        </Routes>
+        {!isLoggedIn ? (
+          <Routes>
+            <Route path="*" element={<Login />} />
+          </Routes>
+        ) : (
+          renderContent()
+        )}
       </div>
     </div>
   );

@@ -1,30 +1,28 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import '../styles/Navigation.css';
 import { useAuth } from '../context/AuthContext';
 
-const Navigation = () => {
-  const location = useLocation();
+const Navigation = ({ currentPage, onPageChange }) => {
   const { userProfile, logout } = useAuth();
 
   return (
     <nav className="navbar">
       <div className="nav-container">
         <div className="nav-logo">
-          <Link to="/">
+          <span onClick={() => onPageChange('top-tracks')} style={{ cursor: 'pointer' }}>
             <i className="fab fa-spotify"></i> Spotify Stats Tracker
-          </Link>
+          </span>
         </div>
         
         <ul className="nav-menu">
-          <li className={location.pathname === '/' ? 'active' : ''}>
-            <Link to="/">Top Tracks</Link>
+          <li className={currentPage === 'top-tracks' ? 'active' : ''}>
+            <span onClick={() => onPageChange('top-tracks')}>Top Tracks</span>
           </li>
-          <li className={location.pathname === '/top-artists' ? 'active' : ''}>
-            <Link to="/top-artists">Top Artists</Link>
+          <li className={currentPage === 'top-artists' ? 'active' : ''}>
+            <span onClick={() => onPageChange('top-artists')}>Top Artists</span>
           </li>
-          <li className={location.pathname === '/profile' ? 'active' : ''}>
-            <Link to="/profile">Profile</Link>
+          <li className={currentPage === 'profile' ? 'active' : ''}>
+            <span onClick={() => onPageChange('profile')}>Profile</span>
           </li>
         </ul>
         
