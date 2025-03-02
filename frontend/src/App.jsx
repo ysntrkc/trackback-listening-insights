@@ -12,6 +12,10 @@ function App() {
   const { isLoggedIn, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('top-tracks');
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -31,7 +35,7 @@ function App() {
 
   return (
     <div className="app">
-      {isLoggedIn && <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />}
+      {isLoggedIn && <Navigation currentPage={currentPage} onPageChange={handlePageChange} />}
       <div className="container">
         {!isLoggedIn ? (
           <Routes>
