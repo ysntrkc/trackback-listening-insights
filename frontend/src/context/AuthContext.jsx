@@ -1,9 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-// Define the backend URL from environment variables
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+import { api } from '../utils/api';
 
 // Create the context
 const AuthContext = createContext(null);
@@ -15,29 +12,16 @@ export const AuthProvider = ({ children }) => {
   const [initialized, setInitialized] = useState(false);
   const navigate = useNavigate();
 
-  // Create a axios instance with credentials
-  const apiClient = axios.create({
-    baseURL: BACKEND_URL,
-    withCredentials: true
-  });
-
   // Check authentication status
   useEffect(() => {
     const checkAuth = async () => {
-      // Skip if we've already initialized
-      if (initialized) {
-        return;
-      }
+      if (initialized) return;
       
       try {
         setLoading(true);
-        const response = await apiClient.get('/init');
-        
-        if (response.data.status === 'success') {
-          // Store basic profile info from init
-          setUserProfile(response.data.data);
-          setIsLoggedIn(true);
-        }
+        const response = await api.get('/init');
+        setUserProfile(response.data);
+        setIsLoggedIn(true);
       } catch (error) {
         console.error('Authentication check failed:', error);
         setIsLoggedIn(false);
@@ -56,10 +40,8 @@ export const AuthProvider = ({ children }) => {
   const loadFullProfile = async () => {
     if (isLoggedIn && (!userProfile?.email)) {
       try {
-        const response = await apiClient.get('/profile');
-        if (response.data.status === 'success') {
-          setUserProfile(response.data.data);
-        }
+        const response = await api.get('/profile');
+        setUserProfile(response.data);
       } catch (error) {
         console.error('Failed to load full profile:', error);
       }
@@ -69,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   // Handle logout
   const logout = async () => {
     try {
-      await apiClient.post('/logout');
+      await api.post('/logout');
       setIsLoggedIn(false);
       setUserProfile(null);
       setInitialized(false);
@@ -83,7 +65,6 @@ export const AuthProvider = ({ children }) => {
     isLoggedIn,
     userProfile,
     loading,
-    apiClient,
     loadFullProfile,
     logout
   };

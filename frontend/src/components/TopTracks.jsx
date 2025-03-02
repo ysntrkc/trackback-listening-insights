@@ -1,35 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../utils/api';
 import Loading from './Loading';
 import './TopItems.css';
 
-// Backend URL from environment variables
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-
-const TopTracks = ({ apiClient }) => {
+const TopTracks = () => {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timeRange, setTimeRange] = useState('medium_term'); // Default to medium_term
+  const [timeRange, setTimeRange] = useState('medium_term');
 
   useEffect(() => {
     const fetchTopTracks = async () => {
       try {
         setLoading(true);
         setError(null);
-        // Use direct URL instead of proxy
-        const response = await axios.get(`${BACKEND_URL}/top-tracks?time_range=${timeRange}&limit=50`, {
-          withCredentials: true
+        const response = await api.get('/top-tracks', {
+          time_range: timeRange,
+          limit: 50
         });
-        
-        if (response.data.status === 'success') {
-          setTracks(response.data.data.tracks || []);
-        } else {
-          setError(response.data.message || 'Failed to fetch top tracks');
-        }
+        setTracks(response.data.tracks || []);
       } catch (error) {
         console.error('Error fetching top tracks:', error);
-        setError(error.response?.data?.message || 'Failed to fetch top tracks');
+        setError(error.message || 'Failed to fetch top tracks');
       } finally {
         setLoading(false);
       }

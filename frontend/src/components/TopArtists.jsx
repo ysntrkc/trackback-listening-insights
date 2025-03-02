@@ -1,35 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../utils/api';
 import Loading from './Loading';
 import './TopItems.css';
-
-// Backend URL from environment variables
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const TopArtists = () => {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timeRange, setTimeRange] = useState('medium_term'); // Default to medium_term
+  const [timeRange, setTimeRange] = useState('medium_term');
 
   useEffect(() => {
     const fetchTopArtists = async () => {
       try {
         setLoading(true);
         setError(null);
-        // Use direct URL instead of proxy
-        const response = await axios.get(`${BACKEND_URL}/top-artists?time_range=${timeRange}&limit=50`, {
-          withCredentials: true
+        const response = await api.get('/top-artists', {
+          time_range: timeRange,
+          limit: 50
         });
-        
-        if (response.data.status === 'success') {
-          setArtists(response.data.data.artists || []);
-        } else {
-          setError(response.data.message || 'Failed to fetch top artists');
-        }
+        setArtists(response.data.artists || []);
       } catch (error) {
         console.error('Error fetching top artists:', error);
-        setError(error.response?.data?.message || 'Failed to fetch top artists');
+        setError(error.message || 'Failed to fetch top artists');
       } finally {
         setLoading(false);
       }

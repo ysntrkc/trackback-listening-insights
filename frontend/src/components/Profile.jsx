@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/api';
 import Loading from './Loading';
 import './Profile.css';
 
 const Profile = () => {
-  const { apiClient } = useAuth();
+  const { userProfile: contextProfile } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,10 +14,8 @@ const Profile = () => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get('/profile');
-        if (response.data.status === 'success') {
-          setProfileData(response.data.data);
-        }
+        const response = await api.get('/profile');
+        setProfileData(response.data);
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile data');
@@ -26,7 +25,7 @@ const Profile = () => {
     };
 
     fetchProfileData();
-  }, [apiClient]);
+  }, []);
 
   if (loading) {
     return <Loading />;
