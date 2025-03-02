@@ -19,7 +19,7 @@ app = FastAPI(title="Spotify Stats Tracker")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # The origin of your React app
+    allow_origins=["*"],  # The origin of your React app
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -170,7 +170,7 @@ async def get_profile(token_data=Depends(get_token_from_request)):
 @app.get("/top-tracks")
 async def get_top_tracks(
     time_range: str = "medium_term",  # short_term (4 weeks), medium_term (6 months), long_term (years)
-    limit: int = 20,
+    limit: int = 50,
     token_data=Depends(get_token_from_request),
 ):
     """Get user's top tracks"""
@@ -189,12 +189,6 @@ async def get_top_tracks(
 
     response = r.json()
 
-    pagination = {
-        "total": response["total"],
-        "limit": response["limit"],
-        "offset": response["offset"],
-    }
-
     tracks = []
     for item in response["items"]:
         track = {
@@ -209,7 +203,7 @@ async def get_top_tracks(
 
     return create_response(
         message="Top tracks retrieved successfully",
-        data={"tracks": tracks, "pagination": pagination},
+        data={"tracks": tracks},
     )
 
 
@@ -235,12 +229,6 @@ async def get_top_artists(
 
     response = r.json()
 
-    pagination = {
-        "total": response["total"],
-        "limit": response["limit"],
-        "offset": response["offset"],
-    }
-
     artists = []
     for item in response["items"]:
         artist = {
@@ -251,7 +239,7 @@ async def get_top_artists(
 
     return create_response(
         message="Top artists retrieved successfully",
-        data={"artists": artists, "pagination": pagination},
+        data={"artists": artists},
     )
 
 
