@@ -5,7 +5,6 @@
   top: 0;
   z-index: 100;
 }
-
 .nav-container {
   display: flex;
   justify-content: space-between;
@@ -14,7 +13,6 @@
   margin: 0 auto;
   padding: 0 20px;
 }
-
 .nav-logo a {
   color: var(--spotify-green);
   text-decoration: none;
@@ -24,17 +22,14 @@
   align-items: center;
   gap: 8px;
 }
-
 .nav-logo i {
   font-size: 24px;
 }
-
 .nav-menu {
   display: flex;
   list-style: none;
   gap: 20px;
 }
-
 .nav-menu li a {
   color: white;
   text-decoration: none;
@@ -43,41 +38,34 @@
   padding: 8px 12px;
   border-radius: 4px;
 }
-
 .nav-menu li.active a {
   color: var(--spotify-green);
   background-color: rgba(29, 185, 84, 0.1);
 }
-
 .nav-menu li a:hover {
   color: var(--spotify-green);
 }
-
 .nav-user {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .user-avatar {
   width: 30px;
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
 }
-
 .username {
   font-size: 14px;
   font-weight: 500;
   display: none;
 }
-
 @media (min-width: 768px) {
   .username {
     display: inline;
   }
 }
-
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;

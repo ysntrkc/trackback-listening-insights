@@ -1,5 +1,5 @@
 import React from 'react';
-import './Login.css';
+import '../styles/Login.css';
 
 const Login = () => {
   // Get the current hostname and port for the frontend

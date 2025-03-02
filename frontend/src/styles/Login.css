@@ -5,7 +5,6 @@
   min-height: 100vh;
   padding: 20px;
 }
-
 .login-card {
   background-color: rgba(0, 0, 0, 0.6);
   border-radius: 10px;
@@ -15,24 +14,20 @@
   max-width: 500px;
   width: 100%;
 }
-
 .spotify-logo {
   width: 180px;
   margin-bottom: 20px;
 }
-
 .login-card h1 {
   margin-bottom: 20px;
   font-size: 28px;
   font-weight: 700;
 }
-
 .login-card p {
   margin-bottom: 30px;
   color: var(--medium-gray);
   font-size: 16px;
 }
-
 .login-btn {
   padding: 15px 30px;
   font-size: 18px;
@@ -41,7 +36,6 @@
   justify-content: center;
   gap: 10px;
 }
-
 .login-btn i {
   font-size: 24px;
 }

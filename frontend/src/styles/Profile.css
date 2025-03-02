@@ -1,7 +1,6 @@
 .profile-container {
   padding: 20px 0;
 }
-
 .profile-card {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 10px;
@@ -9,7 +8,6 @@
   margin: 0 auto;
   max-width: 600px;
 }
-
 .profile-header {
   display: flex;
   flex-direction: column;
@@ -17,7 +15,6 @@
   margin-bottom: 30px;
   text-align: center;
 }
-
 .profile-image {
   width: 150px;
   height: 150px;
@@ -26,35 +23,29 @@
   margin-bottom: 15px;
   border: 3px solid var(--spotify-green);
 }
-
 .profile-header h1 {
   font-size: 28px;
   margin-bottom: 5px;
 }
-
 .profile-details {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
-
 .detail-item {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .detail-label {
   color: var(--medium-gray);
   font-size: 16px;
   font-weight: 500;
 }
-
 .detail-value {
   font-size: 16px;
 }
-
 .spotify-link {
   color: var(--spotify-green);
   text-decoration: none;
@@ -62,7 +53,6 @@
   align-items: center;
   gap: 5px;
 }
-
 .spotify-link:hover {
   text-decoration: underline;
 }
