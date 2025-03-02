@@ -210,7 +210,7 @@ async def get_top_tracks(
 @app.get("/top-artists")
 async def get_top_artists(
     time_range: str = "medium_term",  # short_term (4 weeks), medium_term (6 months), long_term (years)
-    limit: int = 20,
+    limit: int = 50,
     token_data=Depends(get_token_from_request),
 ):
     """Get user's top artists"""
