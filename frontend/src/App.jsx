@@ -22,12 +22,13 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if the user is logged in by fetching the profile
+    // Check if the user is logged in using the lightweight init endpoint
     const checkAuth = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BACKEND_URL}/profile`);
+        const response = await axios.get(`${BACKEND_URL}/init`);
         if (response.data.status === 'success') {
+          // Store basic profile info from init
           setUserProfile(response.data.data);
           setIsLoggedIn(true);
           
@@ -52,6 +53,27 @@ function App() {
     
     checkAuth();
   }, [navigate, location.pathname]);
+
+  // Load full profile details when navigating to the profile page
+  const loadFullProfile = async () => {
+    if (isLoggedIn && (!userProfile?.email || location.pathname === '/profile')) {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/profile`);
+        if (response.data.status === 'success') {
+          setUserProfile(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to load full profile:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Load full profile details only when needed
+    if (location.pathname === '/profile') {
+      loadFullProfile();
+    }
+  }, [location.pathname, isLoggedIn]);
 
   const handleLogout = async () => {
     try {

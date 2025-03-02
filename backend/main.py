@@ -73,6 +73,39 @@ async def root():
     return create_response(message="Welcome to Spotify Stats Tracker API")
 
 
+@app.get("/init")
+async def init(request: Request):
+    """Check if user is logged in and return minimal profile information"""
+    try:
+        token_data = get_token_from_request(request)
+        access_token = token_data["access_token"]
+        headers = {"Authorization": f"Bearer {access_token}"}
+        r = requests.get(f"{API_BASE_URL}/me", headers=headers)
+
+        if r.status_code != 200:
+            raise HTTPException(status_code=r.status_code, detail=r.json())
+
+        user_data = r.json()
+        # Return only minimal required information
+        profile_data = {
+            "display_name": user_data.get("display_name"),
+            "profile_image": (
+                user_data.get("images")[0].get("url")
+                if user_data.get("images")
+                else None
+            ),
+        }
+        return create_response(message="User is authenticated", data=profile_data)
+    except HTTPException as e:
+        # Return 401 Unauthorized with message if token validation fails
+        return JSONResponse(
+            status_code=401,
+            content=create_response(
+                status="error", message="Not authenticated", data=None
+            ),
+        )
+
+
 @app.get("/login")
 async def login():
     """Redirect user to Spotify authorization page"""
