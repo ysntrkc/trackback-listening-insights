@@ -24,6 +24,11 @@ const Navigation = ({ currentPage, onPageChange }) => {
           <li className={currentPage === 'profile' ? 'active' : ''}>
             <span onClick={() => onPageChange('profile')}>Profile</span>
           </li>
+          <li>
+            <a href="https://github.com/ysntrkc/spotify-stats-tracker" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-github"></i>
+            </a>
+          </li>
         </ul>
         
         <div className="nav-user">
