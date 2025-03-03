@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 
-// Create the context
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -12,7 +11,6 @@ export const AuthProvider = ({ children }) => {
   const [initialized, setInitialized] = useState(false);
   const navigate = useNavigate();
 
-  // Check authentication status
   useEffect(() => {
     const checkAuth = async () => {
       if (initialized) return;
@@ -36,7 +34,6 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [navigate]);
 
-  // Load full profile details when needed
   const loadFullProfile = async () => {
     if (isLoggedIn && (!userProfile?.email)) {
       try {
@@ -48,14 +45,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Handle logout
   const logout = async () => {
     try {
+      navigate('/login');
+      
       await api.post('/logout');
       setIsLoggedIn(false);
       setUserProfile(null);
       setInitialized(false);
-      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }

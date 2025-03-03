@@ -1,6 +1,5 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-// Use local storage as persistent cache
 const getFromLocalStorage = (key) => {
   try {
     const item = localStorage.getItem(key);
@@ -55,13 +54,11 @@ export const api = {
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
     const cacheKey = `spotify-api:${url}`;
     
-    // Check if we have the data in local storage
     const cachedData = getFromLocalStorage(cacheKey);
     if (cachedData) {
       return Promise.resolve(cachedData.data);
     }
     
-    // Make the request and save to local storage
     const promise = createRequest(url, { method: 'GET' })
       .then(data => {
         saveToLocalStorage(cacheKey, data);

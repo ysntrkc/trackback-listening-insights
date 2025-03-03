@@ -2,10 +2,8 @@ import React from 'react';
 import '../styles/Login.css';
 
 const Login = () => {
-  // Get the current hostname and port for the frontend
   const frontendUrl = window.location.origin;
   
-  // Get backend URL from environment variables
   const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const backendUrl = `${backendBaseUrl}/login`;
   
