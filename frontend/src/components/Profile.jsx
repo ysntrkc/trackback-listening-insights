@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import Loading from './Loading';
 import '../styles/Profile.css';
 
 const Profile = () => {
-  const { userProfile: contextProfile } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

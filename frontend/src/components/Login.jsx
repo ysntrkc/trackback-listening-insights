@@ -2,8 +2,6 @@ import React from 'react';
 import '../styles/Login.css';
 
 const Login = () => {
-  const frontendUrl = window.location.origin;
-  
   const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const backendUrl = `${backendBaseUrl}/login`;
   

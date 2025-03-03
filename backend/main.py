@@ -10,18 +10,14 @@ import time
 from urllib.parse import urlencode
 from typing import Any, Dict, Optional
 
-# Load environment variables
 load_dotenv()
 
 app = FastAPI(title="Spotify Stats Tracker")
 
-# Frontend URL
 FRONTEND_URL = os.getenv("FRONTEND_URL")
-
-# Add CORS middleware with updated configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://192.168.1.3:5173", "http://localhost:5173"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -87,7 +83,6 @@ async def init(request: Request):
             raise HTTPException(status_code=r.status_code, detail=r.json())
 
         user_data = r.json()
-        # Return only minimal required information
         profile_data = {
             "display_name": user_data.get("display_name"),
             "profile_image": (
@@ -98,7 +93,6 @@ async def init(request: Request):
         }
         return create_response(message="User is authenticated", data=profile_data)
     except HTTPException as _:
-        # Return 401 Unauthorized with message if token validation fails
         return JSONResponse(
             status_code=401,
             content=create_response(
@@ -131,7 +125,6 @@ async def callback(code: str = None, error: str = None, response: Response = Non
     if not code:
         raise HTTPException(status_code=400, detail="Authentication code not provided")
 
-    # Get access token
     auth_string = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
 
     headers = {
@@ -152,7 +145,6 @@ async def callback(code: str = None, error: str = None, response: Response = Non
 
     tokens = r.json()
 
-    # Create a JWT token
     expires_in = tokens["expires_in"]
     jwt_token = jwt.encode(
         {
@@ -164,7 +156,6 @@ async def callback(code: str = None, error: str = None, response: Response = Non
         algorithm="HS256",
     )
 
-    # Set cookie with JWT token with updated secure settings
     response = RedirectResponse(url=FRONTEND_URL)
     response.set_cookie(
         key="auth_token",
@@ -291,7 +282,6 @@ async def logout(response: Response):
     return create_response(message="Logged out successfully")
 
 
-# Add a custom exception handler to format all errors consistently
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     return JSONResponse(
