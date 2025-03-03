@@ -18,10 +18,10 @@ app = FastAPI(title="Spotify Stats Tracker")
 # Frontend URL
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
-# Add CORS middleware
+# Add CORS middleware with updated configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, f"{FRONTEND_URL}/*"],
+    allow_origins=[FRONTEND_URL, "http://192.168.1.3:5173", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,6 +56,7 @@ def create_response(
 def get_token_from_request(request: Request):
     """Extract and validate the JWT token from request"""
     try:
+        print(request.cookies.get("auth_token"))
         auth_header = request.cookies.get("auth_token")
         if not auth_header:
             raise HTTPException(status_code=401, detail="Missing authentication token")
@@ -80,6 +81,7 @@ async def init(request: Request):
         token_data = get_token_from_request(request)
         access_token = token_data["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
+
         r = requests.get(f"{API_BASE_URL}/me", headers=headers)
 
         if r.status_code != 200:
@@ -96,7 +98,7 @@ async def init(request: Request):
             ),
         }
         return create_response(message="User is authenticated", data=profile_data)
-    except HTTPException as e:
+    except HTTPException as _:
         # Return 401 Unauthorized with message if token validation fails
         return JSONResponse(
             status_code=401,
@@ -163,14 +165,15 @@ async def callback(code: str = None, error: str = None, response: Response = Non
         algorithm="HS256",
     )
 
-    # Set cookie with JWT token
+    # Set cookie with JWT token with updated secure settings
     response = RedirectResponse(url=FRONTEND_URL)
     response.set_cookie(
         key="auth_token",
         value=jwt_token,
         httponly=True,
         max_age=expires_in,
-        samesite="lax",
+        samesite="none",
+        secure=True,
     )
 
     return response
@@ -281,7 +284,11 @@ async def get_top_artists(
 @app.post("/logout")
 async def logout(response: Response):
     """Logout the user by clearing the auth cookie"""
-    response.delete_cookie(key="auth_token")
+    response.delete_cookie(
+        key="auth_token",
+        samesite="none",
+        secure=True,
+    )
     return create_response(message="Logged out successfully")
 
 
