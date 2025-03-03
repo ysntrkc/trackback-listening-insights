@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
       if (initialized) return;
       
       try {
+        sessionStorage.clear();
         setLoading(true);
         const response = await api.get('/init');
         setUserProfile(response.data);

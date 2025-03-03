@@ -1,11 +1,34 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
+const CACHE_EXPIRATION = 5 * 60 * 1000; // 5 minutes
+
+const clearExpiredCache = () => {
+  try {
+    const now = Date.now();
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('spotify-api:')) {
+        const item = JSON.parse(sessionStorage.getItem(key));
+        if (now - item.timestamp > CACHE_EXPIRATION) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error clearing expired cache:', error);
+  }
+};
+
 const getFromSessionStorage = (key) => {
   try {
+    clearExpiredCache();
     const item = sessionStorage.getItem(key);
     if (!item) return null;
     
     const parsedItem = JSON.parse(item);
+    if (Date.now() - parsedItem.timestamp > CACHE_EXPIRATION) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
     return parsedItem;
   } catch (error) {
     console.error('Error retrieving from session storage:', error);
