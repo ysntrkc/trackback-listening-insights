@@ -56,7 +56,6 @@ def create_response(
 def get_token_from_request(request: Request):
     """Extract and validate the JWT token from request"""
     try:
-        print(request.cookies.get("auth_token"))
         auth_header = request.cookies.get("auth_token")
         if not auth_header:
             raise HTTPException(status_code=401, detail="Missing authentication token")
