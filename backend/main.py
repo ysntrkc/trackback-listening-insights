@@ -226,6 +226,12 @@ async def get_top_tracks(
             "image": (
                 item["album"]["images"][0]["url"] if item["album"]["images"] else None
             ),
+            "spotify_url": item["external_urls"]["spotify"],
+            "artist_url": (
+                item["artists"][0]["external_urls"]["spotify"]
+                if item["artists"]
+                else None
+            ),
         }
         tracks.append(track)
 
@@ -262,6 +268,7 @@ async def get_top_artists(
         artist = {
             "name": item["name"],
             "image": item["images"][0]["url"] if item["images"] else None,
+            "spotify_url": item["external_urls"]["spotify"],
         }
         artists.append(artist)
 

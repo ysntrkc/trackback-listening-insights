@@ -29,10 +29,13 @@
   margin-top: 20px;
 }
 .artist-card {
+  display: block;
+  text-decoration: none;
+  color: white;
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
 }
 .artist-card:hover {
@@ -70,4 +73,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.spotify-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.spotify-link:hover {
+  color: var(--spotify-green);
 }

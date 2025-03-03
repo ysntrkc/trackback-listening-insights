@@ -86,8 +86,26 @@ const TopTracks = () => {
                       <img src={track.image} alt={track.name} className="track-image" />
                     )}
                   </td>
-                  <td>{track.name}</td>
-                  <td>{track.artist}</td>
+                  <td>
+                    <a 
+                      href={track.spotify_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="spotify-link"
+                    >
+                      {track.name}
+                    </a>
+                  </td>
+                  <td>
+                    <a 
+                      href={track.artist_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="spotify-link"
+                    >
+                      {track.artist}
+                    </a>
+                  </td>
                   <td>{track.album}</td>
                 </tr>
               ))}

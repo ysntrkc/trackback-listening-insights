@@ -68,7 +68,13 @@ const TopArtists = () => {
       ) : (
         <div className="artists-grid">
           {artists.map((artist, index) => (
-            <div key={index} className="artist-card">
+            <a 
+              key={index} 
+              href={artist.spotify_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="artist-card"
+            >
               {artist.image && (
                 <img src={artist.image} alt={artist.name} className="artist-image" />
               )}
@@ -76,7 +82,7 @@ const TopArtists = () => {
                 <span className="artist-rank">{index + 1}</span>
                 <h3 className="artist-name">{artist.name}</h3>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       )}
