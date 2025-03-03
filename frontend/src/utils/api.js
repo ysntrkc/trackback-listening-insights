@@ -1,26 +1,26 @@
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-const getFromLocalStorage = (key) => {
+const getFromSessionStorage = (key) => {
   try {
-    const item = localStorage.getItem(key);
+    const item = sessionStorage.getItem(key);
     if (!item) return null;
     
     const parsedItem = JSON.parse(item);
     return parsedItem;
   } catch (error) {
-    console.error('Error retrieving from local storage:', error);
+    console.error('Error retrieving from session storage:', error);
     return null;
   }
 };
 
-const saveToLocalStorage = (key, data) => {
+const saveToSessionStorage = (key, data) => {
   try {
-    localStorage.setItem(key, JSON.stringify({
+    sessionStorage.setItem(key, JSON.stringify({
       data,
       timestamp: Date.now()
     }));
   } catch (error) {
-    console.error('Error saving to local storage:', error);
+    console.error('Error saving to session storage:', error);
   }
 };
 
@@ -50,18 +50,19 @@ const createRequest = async (endpoint, options = {}) => {
 
 export const api = {
   get: (endpoint, params = {}) => {
+    console.log('api.get', endpoint, params);
     const queryString = new URLSearchParams(params).toString();
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
     const cacheKey = `spotify-api:${url}`;
     
-    const cachedData = getFromLocalStorage(cacheKey);
+    const cachedData = getFromSessionStorage(cacheKey);
     if (cachedData) {
       return Promise.resolve(cachedData.data);
     }
     
     const promise = createRequest(url, { method: 'GET' })
       .then(data => {
-        saveToLocalStorage(cacheKey, data);
+        saveToSessionStorage(cacheKey, data);
         return data;
       });
     
