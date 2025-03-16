@@ -77,6 +77,11 @@ export const AuthProvider = ({ children }) => {
     try {
       await api.post('/logout');
       localStorage.removeItem('auth_token');
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('spotify-api:')) {
+          sessionStorage.removeItem(key);
+        }
+      });
       setIsLoggedIn(false);
       setUserProfile(null);
       setInitialized(false);
