@@ -8,7 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
   const navigate = useNavigate();
 
   const checkAuth = useCallback(async () => {
@@ -37,30 +36,21 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const handleAuthentication = useCallback(async () => {
-    setInitialized(false);
     const result = await checkAuth();
-    setInitialized(true);
     return result;
   }, [checkAuth]);
   
   useEffect(() => {
-    const initializeAuth = async () => {
-      if (initialized) return;
-      
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        await handleAuthentication();
-      } else {
-        setIsLoggedIn(false);
-        setUserProfile(null);
-        setLoading(false);
-        setInitialized(true);
-        navigate('/login');
-      }
-    };
-    
-    initializeAuth();
-  }, [navigate, initialized, handleAuthentication]);
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setIsLoggedIn(false);
+      setUserProfile(null);
+      setLoading(false);
+      navigate('/login');
+    } else {
+      checkAuth();
+    }
+  }, [navigate, checkAuth]);
 
   const loadFullProfile = async () => {
     if (isLoggedIn && (!userProfile?.email)) {
@@ -84,7 +74,6 @@ export const AuthProvider = ({ children }) => {
       });
       setIsLoggedIn(false);
       setUserProfile(null);
-      setInitialized(false);
       navigate('/login');
     } catch (error) {
       // Silent error handling for logout
