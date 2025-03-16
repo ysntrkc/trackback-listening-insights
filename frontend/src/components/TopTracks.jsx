@@ -20,7 +20,6 @@ const TopTracks = () => {
         });
         setTracks(response.data.tracks || []);
       } catch (error) {
-        console.error('Error fetching top tracks:', error);
         setError(error.message || 'Failed to fetch top tracks');
       } finally {
         setLoading(false);

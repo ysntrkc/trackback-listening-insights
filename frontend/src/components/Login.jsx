@@ -3,7 +3,12 @@ import '../styles/Login.css';
 
 const Login = () => {
   const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-  const backendUrl = `${backendBaseUrl}/login`;
+  const loginUrl = `${backendBaseUrl}/login`;
+  
+  // Open Spotify login in same window
+  const handleLogin = () => {
+    window.location.href = loginUrl;
+  };
   
   return (
     <div className="login-container">
@@ -16,9 +21,9 @@ const Login = () => {
         <h1>Spotify Stats Tracker</h1>
         <p>Discover your most listened tracks and favorite artists</p>
         
-        <a href={backendUrl} className="btn btn-primary login-btn">
+        <button onClick={handleLogin} className="btn btn-primary login-btn">
           <i className="fab fa-spotify"></i> Login with Spotify
-        </a>
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 
@@ -11,29 +11,56 @@ export const AuthProvider = ({ children }) => {
   const [initialized, setInitialized] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (initialized) return;
+  const checkAuth = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('auth_token');
       
-      try {
-        sessionStorage.clear();
-        setLoading(true);
-        const response = await api.get('/init');
-        setUserProfile(response.data);
-        setIsLoggedIn(true);
-      } catch (error) {
-        console.error('Authentication check failed:', error);
+      if (!token) {
         setIsLoggedIn(false);
         setUserProfile(null);
-        navigate('/login');
-      } finally {
+        return false;
+      }
+      
+      const response = await api.get('/init');
+      setUserProfile(response.data);
+      setIsLoggedIn(true);
+      return true;
+    } catch (error) {
+      setIsLoggedIn(false);
+      setUserProfile(null);
+      localStorage.removeItem('auth_token');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleAuthentication = useCallback(async () => {
+    setInitialized(false);
+    const result = await checkAuth();
+    setInitialized(true);
+    return result;
+  }, [checkAuth]);
+  
+  useEffect(() => {
+    const initializeAuth = async () => {
+      if (initialized) return;
+      
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        await handleAuthentication();
+      } else {
+        setIsLoggedIn(false);
+        setUserProfile(null);
         setLoading(false);
         setInitialized(true);
+        navigate('/login');
       }
     };
     
-    checkAuth();
-  }, [navigate]);
+    initializeAuth();
+  }, [navigate, initialized, handleAuthentication]);
 
   const loadFullProfile = async () => {
     if (isLoggedIn && (!userProfile?.email)) {
@@ -41,21 +68,21 @@ export const AuthProvider = ({ children }) => {
         const response = await api.get('/profile');
         setUserProfile(response.data);
       } catch (error) {
-        console.error('Failed to load full profile:', error);
+        // Silent error handling for profile loading
       }
     }
   };
 
   const logout = async () => {
     try {
-      navigate('/login');
-      
       await api.post('/logout');
+      localStorage.removeItem('auth_token');
       setIsLoggedIn(false);
       setUserProfile(null);
       setInitialized(false);
+      navigate('/login');
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Silent error handling for logout
     }
   };
 
@@ -64,7 +91,8 @@ export const AuthProvider = ({ children }) => {
     userProfile,
     loading,
     loadFullProfile,
-    logout
+    logout,
+    handleAuthentication
   };
 
   return (

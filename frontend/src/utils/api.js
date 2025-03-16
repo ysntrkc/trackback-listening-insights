@@ -14,7 +14,7 @@ const clearExpiredCache = () => {
       }
     });
   } catch (error) {
-    console.error('Error clearing expired cache:', error);
+    // Silent cleanup failure
   }
 };
 
@@ -31,7 +31,6 @@ const getFromSessionStorage = (key) => {
     }
     return parsedItem;
   } catch (error) {
-    console.error('Error retrieving from session storage:', error);
     return null;
   }
 };
@@ -43,7 +42,7 @@ const saveToSessionStorage = (key, data) => {
       timestamp: Date.now()
     }));
   } catch (error) {
-    console.error('Error saving to session storage:', error);
+    // Ignore storage errors
   }
 };
 
@@ -55,17 +54,31 @@ const handleResponse = async (response) => {
   throw new Error(data.message || 'Something went wrong');
 };
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('auth_token');
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};
+
 const createRequest = async (endpoint, options = {}) => {
   const defaultOptions = {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   };
 
   const response = await fetch(`${BACKEND_URL}${endpoint}`, {
     ...defaultOptions,
     ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers
+    }
   });
   
   return handleResponse(response);
@@ -73,7 +86,6 @@ const createRequest = async (endpoint, options = {}) => {
 
 export const api = {
   get: (endpoint, params = {}) => {
-    console.log('api.get', endpoint, params);
     const queryString = new URLSearchParams(params).toString();
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
     const cacheKey = `spotify-api:${url}`;

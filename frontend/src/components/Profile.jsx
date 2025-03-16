@@ -15,7 +15,6 @@ const Profile = () => {
         const response = await api.get('/profile');
         setProfileData(response.data);
       } catch (err) {
-        console.error('Error fetching profile:', err);
         setError('Failed to load profile data');
       } finally {
         setLoading(false);

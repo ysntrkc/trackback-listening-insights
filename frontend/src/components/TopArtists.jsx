@@ -20,7 +20,6 @@ const TopArtists = () => {
         });
         setArtists(response.data.artists || []);
       } catch (error) {
-        console.error('Error fetching top artists:', error);
         setError(error.message || 'Failed to fetch top artists');
       } finally {
         setLoading(false);

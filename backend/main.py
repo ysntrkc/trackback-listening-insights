@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Request, Response
+from fastapi import FastAPI, HTTPException, Depends, Request, Header
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import requests
@@ -49,14 +49,15 @@ def create_response(
     return {"status": status, "message": message, "data": data}
 
 
-def get_token_from_request(request: Request):
-    """Extract and validate the JWT token from request"""
+def get_token_from_request(request: Request, authorization: str = Header(None)):
+    """Extract and validate the JWT token from request header"""
     try:
-        auth_header = request.cookies.get("auth_token")
-        if not auth_header:
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.replace("Bearer ", "")
+        else:
             raise HTTPException(status_code=401, detail="Missing authentication token")
 
-        payload = jwt.decode(auth_header, SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
     except Exception as e:
         raise HTTPException(
@@ -70,10 +71,10 @@ async def root():
 
 
 @app.get("/init")
-async def init(request: Request):
+async def init(request: Request, authorization: str = Header(None)):
     """Check if user is logged in and return minimal profile information"""
     try:
-        token_data = get_token_from_request(request)
+        token_data = get_token_from_request(request, authorization)
         access_token = token_data["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -117,13 +118,13 @@ async def login():
 
 
 @app.get("/callback")
-async def callback(code: str = None, error: str = None, response: Response = None):
+async def callback(code: str = None, error: str = None):
     """Handle callback from Spotify auth"""
     if error:
-        return create_response(status="error", message=error)
+        return RedirectResponse(url=f"{FRONTEND_URL}/auth?error={error}")
 
     if not code:
-        raise HTTPException(status_code=400, detail="Authentication code not provided")
+        return RedirectResponse(url=f"{FRONTEND_URL}/auth?error=no_code")
 
     auth_string = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
 
@@ -138,35 +139,32 @@ async def callback(code: str = None, error: str = None, response: Response = Non
         "redirect_uri": REDIRECT_URI,
     }
 
-    r = requests.post(TOKEN_URL, headers=headers, data=data)
+    try:
+        r = requests.post(TOKEN_URL, headers=headers, data=data)
 
-    if r.status_code != 200:
-        raise HTTPException(status_code=r.status_code, detail=r.json())
+        if r.status_code != 200:
+            error_message = "spotify_api_error"
+            return RedirectResponse(url=f"{FRONTEND_URL}/auth?error={error_message}")
 
-    tokens = r.json()
+        tokens = r.json()
 
-    expires_in = tokens["expires_in"]
-    jwt_token = jwt.encode(
-        {
-            "access_token": tokens["access_token"],
-            "refresh_token": tokens["refresh_token"],
-            "exp": time.time() + expires_in,
-        },
-        SECRET_KEY,
-        algorithm="HS256",
-    )
+        expires_in = tokens["expires_in"]
+        jwt_token = jwt.encode(
+            {
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "exp": time.time() + expires_in,
+            },
+            SECRET_KEY,
+            algorithm="HS256",
+        )
 
-    response = RedirectResponse(url=FRONTEND_URL)
-    response.set_cookie(
-        key="auth_token",
-        value=jwt_token,
-        httponly=True,
-        max_age=expires_in,
-        samesite="none",
-        secure=True,
-    )
-
-    return response
+        redirect_url = f"{FRONTEND_URL}/auth?token={jwt_token}"
+        return RedirectResponse(url=redirect_url, status_code=303)
+    except Exception as e:
+        return RedirectResponse(
+            url=f"{FRONTEND_URL}/auth?error=server_error", status_code=303
+        )
 
 
 @app.get("/profile")
@@ -197,7 +195,7 @@ async def get_profile(token_data=Depends(get_token_from_request)):
 
 @app.get("/top-tracks")
 async def get_top_tracks(
-    time_range: str = "medium_term",  # short_term (4 weeks), medium_term (6 months), long_term (years)
+    time_range: str = "medium_term",
     limit: int = 50,
     token_data=Depends(get_token_from_request),
 ):
@@ -243,7 +241,7 @@ async def get_top_tracks(
 
 @app.get("/top-artists")
 async def get_top_artists(
-    time_range: str = "medium_term",  # short_term (4 weeks), medium_term (6 months), long_term (years)
+    time_range: str = "medium_term",
     limit: int = 50,
     token_data=Depends(get_token_from_request),
 ):
@@ -279,13 +277,8 @@ async def get_top_artists(
 
 
 @app.post("/logout")
-async def logout(response: Response):
-    """Logout the user by clearing the auth cookie"""
-    response.delete_cookie(
-        key="auth_token",
-        samesite="none",
-        secure=True,
-    )
+async def logout():
+    """Logout endpoint that returns success message"""
     return create_response(message="Logged out successfully")
 
 

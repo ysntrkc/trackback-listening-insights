@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Login from './components/Login';
 import Profile from './components/Profile';
 import TopTracks from './components/TopTracks';
 import TopArtists from './components/TopArtists';
 import Navigation from './components/Navigation';
 import Loading from './components/Loading';
+import AuthCallback from './components/AuthCallback';
 import { useAuth } from './context/AuthContext';
 
 function App() {
   const { isLoggedIn, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('top-tracks');
-
+  const location = useLocation();
+  
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  if (loading) {
+  // Auth route detection
+  const isAuthRoute = location.pathname === '/auth';
+
+  if (loading && !isAuthRoute) {
     return <Loading />;
   }
 
@@ -35,15 +40,19 @@ function App() {
 
   return (
     <div className="app">
-      {isLoggedIn && <Navigation currentPage={currentPage} onPageChange={handlePageChange} />}
+      {isLoggedIn && !isAuthRoute && <Navigation currentPage={currentPage} onPageChange={handlePageChange} />}
       <div className="container">
-        {!isLoggedIn ? (
-          <Routes>
+        <Routes>
+          {/* Auth callback route - highest priority and always accessible */}
+          <Route path="/auth" element={<AuthCallback />} />
+          
+          {/* Regular app routes */}
+          {isLoggedIn ? (
+            <Route path="*" element={renderContent()} />
+          ) : (
             <Route path="*" element={<Login />} />
-          </Routes>
-        ) : (
-          renderContent()
-        )}
+          )}
+        </Routes>
       </div>
     </div>
   );
