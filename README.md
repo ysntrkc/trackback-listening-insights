@@ -55,6 +55,10 @@ A web application that allows users to view their Spotify listening statistics, 
 - JWT Authentication
 - Spotify Web API
 
+## Contact
+
+If you want to use this application or have any questions, feel free to contact me via email at **yasintarakci42@gmail.com**.
+
 ## License
 
 MIT
