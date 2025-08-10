@@ -10,7 +10,7 @@ const Navigation = ({ currentPage, onPageChange }) => {
       <div className="nav-container">
         <div className="nav-logo">
           <span onClick={() => onPageChange('top-tracks')} style={{ cursor: 'pointer' }}>
-            <i className="fab fa-spotify"></i> Spotify Stats Tracker
+            <i className="fab fa-spotify"></i> TrackBack Listening Insights
           </span>
         </div>
         
@@ -25,7 +25,7 @@ const Navigation = ({ currentPage, onPageChange }) => {
             <span onClick={() => onPageChange('profile')}>Profile</span>
           </li>
           <li>
-            <a href="https://github.com/ysntrkc/spotify-stats-tracker" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/ysntrkc/trackback-listening-insights" target="_blank" rel="noopener noreferrer">
               <i className="fab fa-github"></i>
             </a>
           </li>

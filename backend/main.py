@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 
 load_dotenv()
 
-app = FastAPI(title="Spotify Stats Tracker")
+app = FastAPI(title="TrackBack Listening Insights")
 
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 app.add_middleware(
@@ -67,7 +67,7 @@ def get_token_from_request(request: Request, authorization: str = Header(None)):
 
 @app.get("/")
 async def root():
-    return create_response(message="Welcome to Spotify Stats Tracker API")
+    return create_response(message="Welcome to TrackBack Listening Insights API")
 
 
 @app.get("/init")

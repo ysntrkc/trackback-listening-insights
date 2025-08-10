@@ -1,6 +1,6 @@
-# Spotify Stats Tracker Frontend
+# TrackBack Listening Insights Frontend
 
-A React-based frontend for the Spotify Stats Tracker application, built with Vite.
+A React-based frontend for the TrackBack Listening Insights application, built with Vite.
 
 ## Features
 

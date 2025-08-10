@@ -18,7 +18,7 @@ const Login = () => {
           alt="Spotify Logo" 
           className="spotify-logo" 
         />
-        <h1>Spotify Stats Tracker</h1>
+        <h1>TrackBack Listening Insights</h1>
         <p>Discover your most listened tracks and favorite artists</p>
         
         <button onClick={handleLogin} className="btn btn-primary login-btn">
