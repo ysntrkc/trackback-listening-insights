@@ -61,4 +61,4 @@ If you want to use this application or have any questions, feel free to contact 
 
 ## License
 
-MIT
+[MIT](LICENSE)
