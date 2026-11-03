@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import Loading from './Loading';
+import TimeRangeSelector from './TimeRangeSelector';
 import '../styles/TopItems.css';
 
 const TopTracks = () => {
@@ -10,6 +11,7 @@ const TopTracks = () => {
   const [timeRange, setTimeRange] = useState('medium_term');
 
   useEffect(() => {
+    let ignore = false;
     const fetchTopTracks = async () => {
       try {
         setLoading(true);
@@ -18,51 +20,27 @@ const TopTracks = () => {
           time_range: timeRange,
           limit: 50
         });
-        setTracks(response.data.tracks || []);
+        if (!ignore) setTracks(response.data.tracks || []);
       } catch (error) {
-        setError(error.message || 'Failed to fetch top tracks');
+        if (!ignore) setError(error.message || 'Failed to fetch top tracks');
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     fetchTopTracks();
+    return () => { ignore = true; };
   }, [timeRange]);
-
-  const handleTimeRangeChange = (range) => {
-    setTimeRange(range);
-  };
-
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
 
   return (
     <div className="top-items-container">
       <h1 className="page-title">Your Top Tracks</h1>
       
-      <div className="time-range-selector">
-        <button 
-          className={timeRange === 'short_term' ? 'active' : ''} 
-          onClick={() => handleTimeRangeChange('short_term')}
-        >
-          Last 4 Weeks
-        </button>
-        <button 
-          className={timeRange === 'medium_term' ? 'active' : ''} 
-          onClick={() => handleTimeRangeChange('medium_term')}
-        >
-          Last 6 Months
-        </button>
-        <button 
-          className={timeRange === 'long_term' ? 'active' : ''} 
-          onClick={() => handleTimeRangeChange('long_term')}
-        >
-          All Time
-        </button>
-      </div>
+      <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
 
-      {loading ? (
+      {error ? (
+        <div className="error-message">{error}</div>
+      ) : loading ? (
         <Loading />
       ) : (
         <div className="tracks-table-container">

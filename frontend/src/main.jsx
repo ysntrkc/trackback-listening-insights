@@ -11,7 +11,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <App />
-        <Analytics />
+        {/* Never send the /auth URL: it carries the login token */}
+        <Analytics beforeSend={(event) => (event.url.includes('/auth') ? null : event)} />
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,

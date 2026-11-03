@@ -9,7 +9,7 @@ This is a FastAPI application that allows users to view their Spotify statistics
 - Get top tracks for different time periods
 - Get top artists for different time periods
 - Logout functionality
-- Secure cookie-based JWT authentication
+- Signed JWT authentication (Bearer token)
 - CORS support for frontend integration
 
 ## Setup
@@ -52,7 +52,6 @@ This is a FastAPI application that allows users to view their Spotify statistics
 ### Authentication
 - `GET /login` - Redirects to Spotify login
 - `GET /callback` - Handles OAuth callback from Spotify
-- `POST /logout` - Logs out the user and clears auth cookie
 
 ### User Data
 - `GET /init` - Quick authentication check and basic profile info
@@ -92,7 +91,7 @@ Common error scenarios:
 - The application uses FastAPI's automatic API documentation
 - Access interactive API docs at `/docs` or `/redoc`
 - CORS is configured to allow requests from the frontend URL
-- JWT tokens are stored in HTTP-only cookies for security
+- JWT tokens are sent in the URL fragment and stored in the browser's localStorage
 
 ## Troubleshooting
 
@@ -102,7 +101,6 @@ Common error scenarios:
    - Ensure all required scopes are enabled in Spotify Dashboard
 
 2. For "Invalid token" errors:
-   - Clear browser cookies
    - Try logging in again
    - Check if SECRET_KEY is consistent
 
