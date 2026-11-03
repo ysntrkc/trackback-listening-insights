@@ -1,14 +1,15 @@
-from fastapi import FastAPI, HTTPException, Depends, Request, Header
+from fastapi import FastAPI, HTTPException, Depends, Request, Header, Query
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import base64
 import os
+import secrets
 from dotenv import load_dotenv
-from jose import jwt
+import jwt
 import time
 from urllib.parse import urlencode
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 load_dotenv()
 
@@ -28,11 +29,16 @@ CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 SECRET_KEY = os.getenv("SECRET_KEY")
+# An empty key would let anyone sign valid tokens
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is not set")
 
 # Spotify API endpoints
 AUTH_URL = "https://accounts.spotify.com/authorize"
 TOKEN_URL = "https://accounts.spotify.com/api/token"
 API_BASE_URL = "https://api.spotify.com/v1"
+SPOTIFY_TIMEOUT = 10
+STATE_COOKIE = "oauth_state"
 
 # Scopes for Spotify API access
 SCOPES = [
@@ -40,6 +46,8 @@ SCOPES = [
     "user-read-email",
     "user-top-read",
 ]
+
+TimeRange = Literal["short_term", "medium_term", "long_term"]
 
 
 def create_response(
@@ -49,82 +57,107 @@ def create_response(
     return {"status": status, "message": message, "data": data}
 
 
-def get_token_from_request(request: Request, authorization: str = Header(None)):
+def get_token_from_request(authorization: str = Header(None)):
     """Extract and validate the JWT token from request header"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing authentication token")
     try:
-        if authorization and authorization.startswith("Bearer "):
-            token = authorization.replace("Bearer ", "")
-        else:
-            raise HTTPException(status_code=401, detail="Missing authentication token")
-
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return payload
-    except Exception as e:
+        return jwt.decode(
+            authorization.removeprefix("Bearer "), SECRET_KEY, algorithms=["HS256"]
+        )
+    except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=401, detail=f"Invalid authentication token: {str(e)}"
         )
 
 
+def spotify_get(token_data: Dict[str, Any], path: str, params: Optional[dict] = None):
+    """GET a Spotify API endpoint with the user's access token"""
+    headers = {"Authorization": f"Bearer {token_data['access_token']}"}
+    r = requests.get(
+        f"{API_BASE_URL}{path}", headers=headers, params=params, timeout=SPOTIFY_TIMEOUT
+    )
+    if r.status_code != 200:
+        raise HTTPException(status_code=r.status_code, detail="Spotify API error")
+    return r.json()
+
+
+def first_image(images):
+    return images[0]["url"] if images else None
+
+
+def frontend_redirect(**params):
+    return RedirectResponse(
+        url=f"{FRONTEND_URL}/auth?{urlencode(params)}", status_code=303
+    )
+
+
 @app.get("/")
-async def root():
+def root():
     return create_response(message="Welcome to TrackBack Listening Insights API")
 
 
 @app.get("/init")
-async def init(request: Request, authorization: str = Header(None)):
+def init(authorization: str = Header(None)):
     """Check if user is logged in and return minimal profile information"""
     try:
-        token_data = get_token_from_request(request, authorization)
-        access_token = token_data["access_token"]
-        headers = {"Authorization": f"Bearer {access_token}"}
-
-        r = requests.get(f"{API_BASE_URL}/me", headers=headers)
-
-        if r.status_code != 200:
-            raise HTTPException(status_code=r.status_code, detail=r.json())
-
-        user_data = r.json()
-        profile_data = {
-            "display_name": user_data.get("display_name"),
-            "profile_image": (
-                user_data.get("images")[0].get("url")
-                if user_data.get("images")
-                else None
-            ),
-        }
-        return create_response(message="User is authenticated", data=profile_data)
-    except HTTPException as _:
+        user_data = spotify_get(get_token_from_request(authorization), "/me")
+    except HTTPException:
         return JSONResponse(
             status_code=401,
             content=create_response(
                 status="error", message="Not authenticated", data=None
             ),
         )
+    profile_data = {
+        "display_name": user_data.get("display_name"),
+        "profile_image": first_image(user_data.get("images")),
+    }
+    return create_response(message="User is authenticated", data=profile_data)
 
 
 @app.get("/login")
-async def login():
+def login():
     """Redirect user to Spotify authorization page"""
+    state = secrets.token_urlsafe(16)
     params = {
         "client_id": CLIENT_ID,
         "response_type": "code",
         "redirect_uri": REDIRECT_URI,
         "scope": " ".join(SCOPES),
+        "state": state,
         "show_dialog": True,
     }
 
-    auth_url = f"{AUTH_URL}?{urlencode(params)}"
-    return RedirectResponse(url=auth_url)
+    response = RedirectResponse(url=f"{AUTH_URL}?{urlencode(params)}")
+    # The state cookie ties the callback to this browser (prevents login CSRF)
+    response.set_cookie(
+        STATE_COOKIE,
+        state,
+        max_age=600,
+        httponly=True,
+        secure=REDIRECT_URI.startswith("https"),
+        samesite="lax",
+    )
+    return response
 
 
 @app.get("/callback")
-async def callback(code: str = None, error: str = None):
+def callback(
+    request: Request, code: str = None, state: str = None, error: str = None
+):
     """Handle callback from Spotify auth"""
     if error:
-        return RedirectResponse(url=f"{FRONTEND_URL}/auth?error={error}")
+        return frontend_redirect(error=error)
+
+    expected_state = request.cookies.get(STATE_COOKIE)
+    if not state or not expected_state or not secrets.compare_digest(
+        state, expected_state
+    ):
+        return frontend_redirect(error="state_mismatch")
 
     if not code:
-        return RedirectResponse(url=f"{FRONTEND_URL}/auth?error=no_code")
+        return frontend_redirect(error="no_code")
 
     auth_string = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
 
@@ -140,52 +173,44 @@ async def callback(code: str = None, error: str = None):
     }
 
     try:
-        r = requests.post(TOKEN_URL, headers=headers, data=data)
+        r = requests.post(
+            TOKEN_URL, headers=headers, data=data, timeout=SPOTIFY_TIMEOUT
+        )
 
         if r.status_code != 200:
-            error_message = "spotify_api_error"
-            return RedirectResponse(url=f"{FRONTEND_URL}/auth?error={error_message}")
+            return frontend_redirect(error="spotify_api_error")
 
         tokens = r.json()
 
-        expires_in = tokens["expires_in"]
+        # The refresh token is not stored: it is never used and the JWT payload is readable
         jwt_token = jwt.encode(
             {
                 "access_token": tokens["access_token"],
-                "refresh_token": tokens["refresh_token"],
-                "exp": time.time() + expires_in,
+                "exp": time.time() + tokens["expires_in"],
             },
             SECRET_KEY,
             algorithm="HS256",
         )
 
-        redirect_url = f"{FRONTEND_URL}/auth?token={jwt_token}"
-        return RedirectResponse(url=redirect_url, status_code=303)
-    except Exception as e:
-        return RedirectResponse(
-            url=f"{FRONTEND_URL}/auth?error=server_error", status_code=303
+        # Token goes in the URL fragment, which browsers never send to servers or logs
+        response = RedirectResponse(
+            url=f"{FRONTEND_URL}/auth#token={jwt_token}", status_code=303
         )
+    except Exception:
+        response = frontend_redirect(error="server_error")
+    response.delete_cookie(STATE_COOKIE)
+    return response
 
 
 @app.get("/profile")
-async def get_profile(token_data=Depends(get_token_from_request)):
+def get_profile(token_data=Depends(get_token_from_request)):
     """Get user's Spotify profile"""
-    access_token = token_data["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    r = requests.get(f"{API_BASE_URL}/me", headers=headers)
-
-    if r.status_code != 200:
-        raise HTTPException(status_code=r.status_code, detail=r.json())
-
-    user_data = r.json()
+    user_data = spotify_get(token_data, "/me")
 
     profile_data = {
         "display_name": user_data.get("display_name"),
         "email": user_data.get("email"),
-        "profile_image": (
-            user_data.get("images")[0].get("url") if user_data.get("images") else None
-        ),
+        "profile_image": first_image(user_data.get("images")),
         "spotify_url": user_data.get("external_urls", {}).get("spotify"),
         "followers": user_data.get("followers", {}).get("total"),
     }
@@ -194,26 +219,15 @@ async def get_profile(token_data=Depends(get_token_from_request)):
 
 
 @app.get("/top-tracks")
-async def get_top_tracks(
-    time_range: str = "medium_term",
-    limit: int = 50,
+def get_top_tracks(
+    time_range: TimeRange = "medium_term",
+    limit: int = Query(50, ge=1, le=50),
     token_data=Depends(get_token_from_request),
 ):
     """Get user's top tracks"""
-    access_token = token_data["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    params = {
-        "time_range": time_range,
-        "limit": limit,
-    }
-
-    r = requests.get(f"{API_BASE_URL}/me/top/tracks", headers=headers, params=params)
-
-    if r.status_code != 200:
-        raise HTTPException(status_code=r.status_code, detail=r.json())
-
-    response = r.json()
+    response = spotify_get(
+        token_data, "/me/top/tracks", {"time_range": time_range, "limit": limit}
+    )
 
     tracks = []
     for item in response["items"]:
@@ -221,9 +235,7 @@ async def get_top_tracks(
             "name": item["name"],
             "artist": ", ".join([artist["name"] for artist in item["artists"]]),
             "album": item["album"]["name"],
-            "image": (
-                item["album"]["images"][0]["url"] if item["album"]["images"] else None
-            ),
+            "image": first_image(item["album"]["images"]),
             "spotify_url": item["external_urls"]["spotify"],
             "artist_url": (
                 item["artists"][0]["external_urls"]["spotify"]
@@ -240,32 +252,21 @@ async def get_top_tracks(
 
 
 @app.get("/top-artists")
-async def get_top_artists(
-    time_range: str = "medium_term",
-    limit: int = 50,
+def get_top_artists(
+    time_range: TimeRange = "medium_term",
+    limit: int = Query(50, ge=1, le=50),
     token_data=Depends(get_token_from_request),
 ):
     """Get user's top artists"""
-    access_token = token_data["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    params = {
-        "time_range": time_range,
-        "limit": limit,
-    }
-
-    r = requests.get(f"{API_BASE_URL}/me/top/artists", headers=headers, params=params)
-
-    if r.status_code != 200:
-        raise HTTPException(status_code=r.status_code, detail=r.json())
-
-    response = r.json()
+    response = spotify_get(
+        token_data, "/me/top/artists", {"time_range": time_range, "limit": limit}
+    )
 
     artists = []
     for item in response["items"]:
         artist = {
             "name": item["name"],
-            "image": item["images"][0]["url"] if item["images"] else None,
+            "image": first_image(item["images"]),
             "spotify_url": item["external_urls"]["spotify"],
         }
         artists.append(artist)
@@ -274,12 +275,6 @@ async def get_top_artists(
         message="Top artists retrieved successfully",
         data={"artists": artists},
     )
-
-
-@app.post("/logout")
-async def logout():
-    """Logout endpoint that returns success message"""
-    return create_response(message="Logged out successfully")
 
 
 @app.exception_handler(HTTPException)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import Loading from './Loading';
+import TimeRangeSelector from './TimeRangeSelector';
 import '../styles/TopItems.css';
 
 const TopArtists = () => {
@@ -10,6 +11,7 @@ const TopArtists = () => {
   const [timeRange, setTimeRange] = useState('medium_term');
 
   useEffect(() => {
+    let ignore = false;
     const fetchTopArtists = async () => {
       try {
         setLoading(true);
@@ -18,51 +20,27 @@ const TopArtists = () => {
           time_range: timeRange,
           limit: 50
         });
-        setArtists(response.data.artists || []);
+        if (!ignore) setArtists(response.data.artists || []);
       } catch (error) {
-        setError(error.message || 'Failed to fetch top artists');
+        if (!ignore) setError(error.message || 'Failed to fetch top artists');
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     fetchTopArtists();
+    return () => { ignore = true; };
   }, [timeRange]);
-
-  const handleTimeRangeChange = (range) => {
-    setTimeRange(range);
-  };
-
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
 
   return (
     <div className="top-items-container">
       <h1 className="page-title">Your Top Artists</h1>
       
-      <div className="time-range-selector">
-        <button 
-          className={timeRange === 'short_term' ? 'active' : ''} 
-          onClick={() => handleTimeRangeChange('short_term')}
-        >
-          Last 4 Weeks
-        </button>
-        <button 
-          className={timeRange === 'medium_term' ? 'active' : ''} 
-          onClick={() => handleTimeRangeChange('medium_term')}
-        >
-          Last 6 Months
-        </button>
-        <button 
-          className={timeRange === 'long_term' ? 'active' : ''} 
-          onClick={() => handleTimeRangeChange('long_term')}
-        >
-          All Time
-        </button>
-      </div>
+      <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       
-      {loading ? (
+      {error ? (
+        <div className="error-message">{error}</div>
+      ) : loading ? (
         <Loading />
       ) : (
         <div className="artists-grid">

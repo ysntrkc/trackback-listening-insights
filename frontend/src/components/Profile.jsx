@@ -51,7 +51,7 @@ const Profile = () => {
           {profileData.profile_image && (
             <img 
               src={profileData.profile_image}
-              alt={profileData.display_name}
+              alt=""
               className="profile-image"
             />
           )}
@@ -66,7 +66,7 @@ const Profile = () => {
             </div>
           )}
           
-          {profileData.followers !== undefined && (
+          {profileData.followers != null && (
             <div className="detail-item">
               <span className="detail-label">Followers:</span>
               <span className="detail-value">{profileData.followers.toLocaleString()}</span>
@@ -80,9 +80,9 @@ const Profile = () => {
                 href={profileData.spotify_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="spotify-link"
+                className="profile-link"
               >
-                Open in Spotify <i className="fas fa-external-link-alt"></i>
+                Open in Spotify <i className="fas fa-external-link-alt" aria-hidden="true"></i>
               </a>
             </div>
           )}

@@ -2,13 +2,13 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const CACHE_EXPIRATION = 5 * 60 * 1000; // 5 minutes
 
-const clearExpiredCache = () => {
+export const clearCache = (onlyExpired = false) => {
   try {
     const now = Date.now();
     Object.keys(sessionStorage).forEach(key => {
       if (key.startsWith('spotify-api:')) {
         const item = JSON.parse(sessionStorage.getItem(key));
-        if (now - item.timestamp > CACHE_EXPIRATION) {
+        if (!onlyExpired || now - item.timestamp > CACHE_EXPIRATION) {
           sessionStorage.removeItem(key);
         }
       }
@@ -20,16 +20,9 @@ const clearExpiredCache = () => {
 
 const getFromSessionStorage = (key) => {
   try {
-    clearExpiredCache();
+    clearCache(true);
     const item = sessionStorage.getItem(key);
-    if (!item) return null;
-    
-    const parsedItem = JSON.parse(item);
-    if (Date.now() - parsedItem.timestamp > CACHE_EXPIRATION) {
-      sessionStorage.removeItem(key);
-      return null;
-    }
-    return parsedItem;
+    return item ? JSON.parse(item) : null;
   } catch (error) {
     return null;
   }
@@ -47,7 +40,13 @@ const saveToSessionStorage = (key, data) => {
 };
 
 const handleResponse = async (response) => {
-  const data = await response.json();
+  // An expired or invalid token cannot recover: drop it and go back to login
+  if (response.status === 401 && localStorage.getItem('auth_token')) {
+    localStorage.removeItem('auth_token');
+    clearCache();
+    window.location.assign('/');
+  }
+  const data = await response.json().catch(() => ({}));
   if (response.ok && data.status === 'success') {
     return data;
   }
@@ -56,58 +55,23 @@ const handleResponse = async (response) => {
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('auth_token');
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  return headers;
-};
-
-const createRequest = async (endpoint, options = {}) => {
-  const defaultOptions = {
-    headers: getAuthHeaders(),
-  };
-
-  const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-    ...defaultOptions,
-    ...options,
-    headers: {
-      ...defaultOptions.headers,
-      ...options.headers
-    }
-  });
-  
-  return handleResponse(response);
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 export const api = {
-  get: (endpoint, params = {}) => {
+  get: async (endpoint, params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
     const cacheKey = `spotify-api:${url}`;
-    
+
     const cachedData = getFromSessionStorage(cacheKey);
     if (cachedData) {
-      return Promise.resolve(cachedData.data);
+      return cachedData.data;
     }
-    
-    const promise = createRequest(url, { method: 'GET' })
-      .then(data => {
-        saveToSessionStorage(cacheKey, data);
-        return data;
-      });
-    
-    return promise;
-  },
 
-  post: (endpoint, data = null) => {
-    return createRequest(endpoint, {
-      method: 'POST',
-      body: data ? JSON.stringify(data) : null,
-    });
+    const response = await fetch(`${BACKEND_URL}${url}`, { headers: getAuthHeaders() });
+    const data = await handleResponse(response);
+    saveToSessionStorage(cacheKey, data);
+    return data;
   },
 };

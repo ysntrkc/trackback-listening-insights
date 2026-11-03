@@ -22,7 +22,7 @@ const Login = () => {
         <p>Discover your most listened tracks and favorite artists</p>
         
         <button onClick={handleLogin} className="btn btn-primary login-btn">
-          <i className="fab fa-spotify"></i> Login with Spotify
+          <i className="fab fa-spotify" aria-hidden="true"></i> Login with Spotify
         </button>
       </div>
     </div>

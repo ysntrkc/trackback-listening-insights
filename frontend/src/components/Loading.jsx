@@ -2,8 +2,8 @@ import React from 'react';
 
 const Loading = () => {
   return (
-    <div className="loading-spinner">
-      <i className="fas fa-circle-notch"></i>
+    <div className="loading-spinner" role="status" aria-label="Loading">
+      <i className="fas fa-circle-notch" aria-hidden="true"></i>
     </div>
   );
 };

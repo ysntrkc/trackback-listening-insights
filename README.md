@@ -20,7 +20,7 @@ A web application that allows users to view their Spotify listening statistics, 
 
 ## Prerequisites
 
-- Node.js 16+ for frontend
+- Node.js 18+ for frontend
 - Python 3.12+ for backend
 - Spotify Developer account and application credentials
 
@@ -47,7 +47,6 @@ A web application that allows users to view their Spotify listening statistics, 
 - React 18
 - Vite
 - React Router
-- Axios
 
 ### Backend
 - FastAPI
