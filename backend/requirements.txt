@@ -1,5 +1,5 @@
 fastapi==0.103.1
 uvicorn==0.23.2
-requests==2.31.0
-python-dotenv==1.0.0
-python-jose==3.3.0
+requests==2.33.0
+python-dotenv==1.2.2
+PyJWT==2.10.1

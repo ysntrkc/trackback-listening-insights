@@ -5,7 +5,7 @@ import requests
 import base64
 import os
 from dotenv import load_dotenv
-from jose import jwt
+import jwt
 import time
 from urllib.parse import urlencode
 from typing import Any, Dict, Optional
